@@ -1,27 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-void main() {
-  runApp(const AssignmentManagementApp());
-}
-
-class AssignmentManagementApp extends StatelessWidget {
-  const AssignmentManagementApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Assignment Manager',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const AssignmentManagementScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
 class Assignment {
   String id;
   String title;
@@ -652,3 +631,4 @@ class _AssignmentManagementScreenState
     );
   }
 }
+
