@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-class HomeDashboard extends StatelessWidget {
-    HomeDashboard({super.key});
+class Dashboard extends StatelessWidget {
+
+    Dashboard({super.key});
   @override
   Widget build(BuildContext context) {
     double attendance = 70.0;
@@ -12,6 +13,14 @@ class HomeDashboard extends StatelessWidget {
       appBar: AppBar(
         title: Text('Dashboard',
          style: TextStyle(color: Colors.white),),backgroundColor: Colors.blue[900],
+         actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: Colors.white),
+            onPressed: () {
+              // Settings action
+            },
+          ),
+        ],
          ),
         body: Column(
           children: [

@@ -15,7 +15,7 @@ class _NavigationMenuState extends State<NavigationMenu> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const Dashboard(),
+    Dashboard(),
     const Center(child: Text('Calendar Screen')),
     const AssignmentManagementScreen(),
     const ScheduleScreen(),
