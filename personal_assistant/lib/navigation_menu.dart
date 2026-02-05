@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:personal_assistant/Screens/asssignmentScreen.dart";
+import "package:personal_assistant/Screens/schedule_screen.dart";
 import "Screens/attendance_tracking.dart";
 import "Screens/dashboard.dart";
 
@@ -17,7 +18,7 @@ class _NavigationMenuState extends State<NavigationMenu> {
     const Dashboard(),
     const Center(child: Text('Calendar Screen')),
     const AssignmentManagementScreen(),
-    const Center(child: Text('Schedule Screen')),
+    const ScheduleScreen(),
     const AttendanceTracking(),
   ];
 
