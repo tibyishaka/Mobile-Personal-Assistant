@@ -16,7 +16,6 @@ class _NavigationMenuState extends State<NavigationMenu> {
 
   final List<Widget> _screens = [
     Dashboard(),
-    const Center(child: Text('Calendar Screen')),
     const AssignmentManagementScreen(),
     const ScheduleScreen(),
     const AttendanceTracking(),
@@ -40,15 +39,11 @@ class _NavigationMenuState extends State<NavigationMenu> {
             label: 'Dashboard',
           ),
           NavigationDestination(
-            icon: Icon(Icons.calendar_today, size: 22),
-            label: 'Calendar',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.assignment, size: 22),
             label: 'Assignment',
           ),
           NavigationDestination(
-            icon: Icon(Icons.schedule, size: 22),
+            icon: Icon(Icons.calendar_month, size: 22),
             label: 'Schedule',
           ),
           NavigationDestination(
