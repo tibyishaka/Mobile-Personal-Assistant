@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:personal_assistant/Screens/Settings.dart';
 
 class Dashboard extends StatelessWidget {
-
   const Dashboard({super.key});
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,10 @@ class Dashboard extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.settings, color: Colors.white),
             onPressed: () {
-              // Settings action
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Settings()),
+              );
             },
           ),
         ],
