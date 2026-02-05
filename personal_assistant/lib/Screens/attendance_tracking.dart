@@ -105,53 +105,63 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
   }
 
   Widget _buildOverallSummary(double percentage, bool isGood) {
-    return Card(
-      elevation: 4,
-      color: white,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Text(
-              'Overall Attendance',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: darkBlue,
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.85,
+      child: Card(
+        elevation: 4,
+        color: white,
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            children: [
+              Text(
+                'Overall Attendance',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: darkBlue,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '${percentage.toStringAsFixed(1)}%',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: isGood ? Colors.green : deepRed,
+              const SizedBox(height: 10),
+              Text(
+                '${percentage.toStringAsFixed(1)}%',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: isGood ? Colors.green : deepRed,
+                ),
               ),
-            ),
 
-            const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: isGood ? Colors.green : deepRed,
-                borderRadius: BorderRadius.circular(20),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: isGood ? Colors.green : deepRed,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  isGood ? 'Good Standing' : 'At Risk',
+                  style: TextStyle(
+                    color: white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
               ),
-              child: Text(
-                isGood ? 'Good Standing' : 'At Risk',
-                style: TextStyle(color: white, fontWeight: FontWeight.bold),
+
+              const SizedBox(height: 8),
+
+              Text(
+                'You have attended $attendedSessions out of $totalSessions sessions',
+                style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                textAlign: TextAlign.center,
               ),
-            ),
-
-            const SizedBox(height: 12),
-
-            Text(
-              'You have attended $attendedSessions out of $totalSessions sessions',
-              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -492,5 +502,6 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
       ),
     );
   }
+
   double get overallPercentage => (attendedSessions / totalSessions) * 100;
 }
