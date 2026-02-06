@@ -50,7 +50,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     DateTime startOfWeek = getStartOfWeek(selectedWeek);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Schedule')),
+      appBar: AppBar(
+        title: Text('Schedule', style: TextStyle(color: Colors.white),),
+        backgroundColor: Colors.blue[900],
+        ),
       body: Column(
         children: [
           Container(

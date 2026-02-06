@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:personal_assistant/providers/assignment_provider.dart';
 import 'package:provider/provider.dart';
+import 'navigation_menu.dart';
 import 'providers/schedule_provider.dart';
-import 'Screens/schedule_screen.dart';
-import 'utils/constants.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,12 +15,18 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => ScheduleProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AssignmentProvider()),
+        ChangeNotifierProvider(create: (_) => ScheduleProvider()),
+      ],
       child: MaterialApp(
-        title: 'ALU Student Assistant',
-        theme: AppTheme.theme,
+        title: 'Personal Assistant',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        home: const NavigationMenu(),
         debugShowCheckedModeBanner: false,
-        home: const MainScreen(),
       ),
     );
   }
@@ -42,4 +48,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-
