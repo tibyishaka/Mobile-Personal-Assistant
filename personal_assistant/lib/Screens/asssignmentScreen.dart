@@ -1,41 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
-class Assignment {
-  String id;
-  String title;
-  DateTime dueDate;
-  String courseName;
-  String priority;
-  bool isCompleted;
-
-  Assignment({
-    required this.id,
-    required this.title,
-    required this.dueDate,
-    required this.courseName,
-    this.priority = 'Medium',
-    this.isCompleted = false,
-  });
-
-  Assignment copyWith({
-    String? id,
-    String? title,
-    DateTime? dueDate,
-    String? courseName,
-    String? priority,
-    bool? isCompleted,
-  }) {
-    return Assignment(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      dueDate: dueDate ?? this.dueDate,
-      courseName: courseName ?? this.courseName,
-      priority: priority ?? this.priority,
-      isCompleted: isCompleted ?? this.isCompleted,
-    );
-  }
-}
+import 'package:personal_assistant/models/assignment.dart';
+import 'package:personal_assistant/providers/assignment_provider.dart';
 
 class AssignmentManagementScreen extends StatefulWidget {
   const AssignmentManagementScreen({super.key});
@@ -47,19 +14,17 @@ class AssignmentManagementScreen extends StatefulWidget {
 
 class _AssignmentManagementScreenState
     extends State<AssignmentManagementScreen> {
-  final List<Assignment> _assignments = [];
   final _titleController = TextEditingController();
   final _courseController = TextEditingController();
   DateTime? _selectedDate;
   String _selectedPriority = 'Medium';
   final _formKey = GlobalKey<FormState>();
   Assignment? _assignmentToEdit;
-  final _dateController = TextEditingController(); // Added controller for date
+  final _dateController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Initialize with today's date for better UX
     _selectedDate = DateTime.now();
     _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate!);
   }
@@ -84,16 +49,14 @@ class _AssignmentManagementScreenState
         isCompleted: _assignmentToEdit?.isCompleted ?? false,
       );
 
-      setState(() {
-        if (_assignmentToEdit != null) {
-          final index =
-          _assignments.indexWhere((a) => a.id == _assignmentToEdit!.id);
-          _assignments[index] = assignment;
-        } else {
-          _assignments.add(assignment);
-        }
-        _assignments.sort((a, b) => a.dueDate.compareTo(b.dueDate));
-      });
+      final assignmentProvider =
+      Provider.of<AssignmentProvider>(context, listen: false);
+
+      if (_assignmentToEdit != null) {
+        assignmentProvider.updateAssignment(assignment);
+      } else {
+        assignmentProvider.addAssignment(assignment);
+      }
 
       _resetForm();
       Navigator.of(context).pop();
@@ -103,6 +66,7 @@ class _AssignmentManagementScreenState
               ? 'Assignment updated successfully!'
               : 'Assignment added successfully!'),
           backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
         ),
       );
     }
@@ -121,14 +85,15 @@ class _AssignmentManagementScreenState
           ),
           TextButton(
             onPressed: () {
-              setState(() {
-                _assignments.removeWhere((assignment) => assignment.id == id);
-              });
+              final assignmentProvider =
+              Provider.of<AssignmentProvider>(context, listen: false);
+              assignmentProvider.deleteAssignment(id);
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Assignment deleted'),
                   backgroundColor: Colors.red,
+                  duration: Duration(seconds: 2),
                 ),
               );
             },
@@ -143,12 +108,9 @@ class _AssignmentManagementScreenState
   }
 
   void _toggleCompletion(String id) {
-    setState(() {
-      final index = _assignments.indexWhere((assignment) => assignment.id == id);
-      _assignments[index] = _assignments[index].copyWith(
-        isCompleted: !_assignments[index].isCompleted,
-      );
-    });
+    final assignmentProvider =
+    Provider.of<AssignmentProvider>(context, listen: false);
+    assignmentProvider.toggleCompletion(id);
   }
 
   void _editAssignment(Assignment assignment) {
@@ -350,6 +312,8 @@ class _AssignmentManagementScreenState
 
   @override
   Widget build(BuildContext context) {
+    final assignments = Provider.of<AssignmentProvider>(context).assignments;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Assignment Management'),
@@ -371,7 +335,7 @@ class _AssignmentManagementScreenState
         elevation: 4,
         child: const Icon(Icons.add),
       ),
-      body: _assignments.isEmpty
+      body: assignments.isEmpty
           ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -414,7 +378,7 @@ class _AssignmentManagementScreenState
                 const Icon(Icons.filter_list, color: Colors.deepPurple),
                 const SizedBox(width: 8),
                 Text(
-                  '${_assignments.length} assignment${_assignments.length == 1 ? '' : 's'}',
+                  '${assignments.length} assignment${assignments.length == 1 ? '' : 's'}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -424,7 +388,7 @@ class _AssignmentManagementScreenState
                 const Spacer(),
                 Chip(
                   label: Text(
-                    '${_assignments.where((a) => !a.isCompleted).length} pending',
+                    '${assignments.where((a) => !a.isCompleted).length} pending',
                     style: const TextStyle(color: Colors.white),
                   ),
                   backgroundColor: Colors.deepPurple,
@@ -435,9 +399,13 @@ class _AssignmentManagementScreenState
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _assignments.length,
+              itemCount: assignments.length,
               itemBuilder: (context, index) {
-                final assignment = _assignments[index];
+                final assignment = assignments[index];
+                final now = DateTime.now();
+                final isOverdue = assignment.dueDate.isBefore(now) && !assignment.isCompleted;
+                final daysUntilDue = assignment.dueDate.difference(now).inDays;
+
                 return Card(
                   elevation: 2,
                   margin: const EdgeInsets.only(bottom: 12),
@@ -535,9 +503,7 @@ class _AssignmentManagementScreenState
                             Icon(
                               Icons.calendar_today,
                               size: 14,
-                              color: assignment.dueDate
-                                  .isBefore(DateTime.now()) &&
-                                  !assignment.isCompleted
+                              color: isOverdue
                                   ? Colors.red
                                   : Colors.blue,
                             ),
@@ -547,21 +513,15 @@ class _AssignmentManagementScreenState
                                   .format(assignment.dueDate),
                               style: TextStyle(
                                 fontSize: 14,
-                                color: assignment.dueDate
-                                    .isBefore(DateTime.now()) &&
-                                    !assignment.isCompleted
+                                color: isOverdue
                                     ? Colors.red
                                     : Colors.grey[700],
-                                fontWeight: assignment.dueDate
-                                    .isBefore(DateTime.now()) &&
-                                    !assignment.isCompleted
+                                fontWeight: isOverdue
                                     ? FontWeight.bold
                                     : FontWeight.normal,
                               ),
                             ),
-                            if (assignment.dueDate
-                                .isBefore(DateTime.now()) &&
-                                !assignment.isCompleted)
+                            if (isOverdue)
                               Container(
                                 margin: const EdgeInsets.only(left: 8),
                                 padding: const EdgeInsets.symmetric(
@@ -579,6 +539,32 @@ class _AssignmentManagementScreenState
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            if (!isOverdue && daysUntilDue <= 7 && !assignment.isCompleted)
+                              Container(
+                                margin: const EdgeInsets.only(left: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: Colors.orange,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  daysUntilDue == 0
+                                      ? 'Due Today'
+                                      : daysUntilDue == 1
+                                      ? 'Tomorrow'
+                                      : '$daysUntilDue days',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.orange,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -631,4 +617,3 @@ class _AssignmentManagementScreenState
     );
   }
 }
-
