@@ -37,12 +37,12 @@ class _SettingsState extends State<Settings> {
                       color: const Color.fromARGB(255, 5, 48, 83),
                     ),
                   ),
-                  CheckboxListTile(
+                  SwitchListTile(
                     title: Text('Allow Notifications'),
                     value: _notificationsEnabled,
-                    onChanged: (bool? value) {
+                    onChanged: (bool value) {
                       setState(() {
-                        _notificationsEnabled = value ?? true;
+                        _notificationsEnabled = value;
                       });
                     },
                     activeColor: const Color.fromARGB(255, 5, 48, 83),
@@ -78,7 +78,7 @@ class _SettingsState extends State<Settings> {
                     icon: Icon(Icons.delete_outline),
                     label: Text('Clear All Data'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
+                      backgroundColor: Colors.blue[300],
                       foregroundColor: Colors.white,
                       minimumSize: Size(double.infinity, 45),
                     ),
