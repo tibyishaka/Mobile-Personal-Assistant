@@ -10,46 +10,10 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Perform logout
-                context.read<AuthProvider>().logout();
-                // Pop the dialog first
-                Navigator.pop(context);
-                // Pop back to main screen so AuthWrapper can redirect to login
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Logout'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  bool _notificationsEnabled = true;
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final currentUser = authProvider.currentUser;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings', style: TextStyle(color: Colors.white)),
@@ -57,144 +21,241 @@ class _SettingsState extends State<Settings> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: ListView(
+        padding: EdgeInsets.all(16),
         children: [
-          // User Profile Section
-          if (currentUser != null)
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: const Color.fromARGB(255, 5, 48, 83),
+          // Notifications Section
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: EdgeInsets.all(12),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Color.fromARGB(255, 5, 48, 83),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
                   Text(
-                    currentUser.username,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    currentUser.email,
+                    'Notifications',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 14,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 5, 48, 83),
+                    ),
+                  ),
+                  SwitchListTile(
+                    title: Text('Allow Notifications'),
+                    value: _notificationsEnabled,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _notificationsEnabled = value;
+                      });
+                    },
+                    activeColor: const Color.fromARGB(255, 5, 48, 83),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          SizedBox(height: 16),
+
+          // Actions Section
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Actions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 5, 48, 83),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      _showClearDataDialog(context);
+                    },
+                    icon: Icon(Icons.delete_outline),
+                    label: Text('Clear All Data'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[300],
+                      foregroundColor: Colors.white,
+                      minimumSize: Size(double.infinity, 45),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      _showLogoutDialog(context);
+                    },
+                    icon: Icon(Icons.logout),
+                    label: Text('Logout'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      minimumSize: Size(double.infinity, 45),
                     ),
                   ),
                 ],
               ),
             ),
-
-          const SizedBox(height: 16),
-
-          // Settings Options
-          ListTile(
-            leading: const Icon(Icons.person_outline),
-            title: const Text('Profile'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to profile screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile feature coming soon')),
-              );
-            },
           ),
-          const Divider(),
 
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Notifications'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to notifications settings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Notifications feature coming soon'),
-                ),
-              );
-            },
-          ),
-          const Divider(),
+          SizedBox(height: 16),
 
-          ListTile(
-            leading: const Icon(Icons.palette_outlined),
-            title: const Text('Appearance'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to appearance settings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Appearance feature coming soon')),
-              );
-            },
-          ),
-          const Divider(),
-
-          ListTile(
-            leading: const Icon(Icons.help_outline),
-            title: const Text('Help & Support'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Navigate to help screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Help feature coming soon')),
-              );
-            },
-          ),
-          const Divider(),
-
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('About'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // TODO: Show about dialog
-              showAboutDialog(
-                context: context,
-                applicationName: 'ALU Student Assistant',
-                applicationVersion: '1.0.0',
-                applicationIcon: const Icon(Icons.school, size: 48),
+          // About Section
+          Card(
+            elevation: 2,
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'A personal assistant app for ALU students to manage schedules, assignments, and attendance.',
+                  Text(
+                    'About',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 5, 48, 83),
+                    ),
                   ),
+                  SizedBox(height: 16),
+                  _buildAboutRow('App Name', 'Personal Assistant'),
+                  SizedBox(height: 12),
+                  _buildAboutRow('Version', '1.0.0'),
+                  SizedBox(height: 12),
+                  _buildAboutRow(
+                    'Description',
+                    'A comprehensive mobile app to help students manage their schedules, assignments, and attendance.',
+                  ),
+                  SizedBox(height: 12),
+                  _buildTeamMembers(),
+                  SizedBox(height: 12),
+                  _buildAboutRow('University', 'African Leadership University'),
                 ],
-              );
-            },
-          ),
-          const Divider(),
-
-          const SizedBox(height: 24),
-
-          // Logout Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ElevatedButton.icon(
-              onPressed: _showLogoutDialog,
-              icon: const Icon(Icons.logout),
-              label: const Text('Logout'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
         ],
       ),
+    );
+  }
+
+  Widget _buildAboutRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[700],
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(value, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+      ],
+    );
+  }
+
+  Widget _buildTeamMembers() {
+    final teamMembers = [
+      'Thierry Ibyishaka Tresor Alain',
+      'Eddy Irasetsa',
+      'Arsene Kabasinga',
+      'Muhoracyeye Yvette',
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Team Members',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[700],
+          ),
+        ),
+        SizedBox(height: 4),
+        ...teamMembers
+            .map(
+              (member) => Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '• $member',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+              ),
+            )
+            .toList(),
+      ],
+    );
+  }
+
+  void _showClearDataDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Clear All Data'),
+          content: Text(
+            'Are you sure you want to clear all data? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Implement clear data functionality
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('All data cleared')));
+              },
+              child: Text('Clear', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Logout'),
+          content: Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Perform logout with AuthProvider
+                context.read<AuthProvider>().logout();
+                // Pop the dialog first
+                Navigator.of(context).pop();
+                // Pop back to main screen so AuthWrapper can redirect to login
+                Navigator.of(context).pop();
+              },
+              child: Text('Logout', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
