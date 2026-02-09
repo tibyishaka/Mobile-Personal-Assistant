@@ -149,6 +149,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           );
         },
         child: Icon(Icons.add),
+          backgroundColor: Colors.blue[900],
+         foregroundColor: Colors.white,
       ),
     );
   }

@@ -17,8 +17,9 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color.fromARGB(255, 5, 48, 83),
+        backgroundColor:  Colors.blue[900],
         iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true,
       ),
       body: ListView(
         padding: EdgeInsets.all(16),
