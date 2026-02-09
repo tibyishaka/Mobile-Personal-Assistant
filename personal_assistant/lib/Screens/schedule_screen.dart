@@ -53,6 +53,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       appBar: AppBar(
         title: Text('Schedule', style: TextStyle(color: Colors.white),),
         backgroundColor: Colors.blue[900],
+        centerTitle: true,
         ),
       body: Column(
         children: [
