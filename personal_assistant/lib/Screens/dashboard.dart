@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:personal_assistant/Screens/Settings.dart';
+import 'package:personal_assistant/providers/schedule_provider.dart';
+import 'package:personal_assistant/providers/assignment_provider.dart';
 
 class Dashboard extends StatelessWidget {
   const Dashboard({super.key});
@@ -7,7 +10,7 @@ class Dashboard extends StatelessWidget {
   // Helper function to get academic week (assuming 16-week semester starting from Feb 1)
   int getAcademicWeek() {
     final now = DateTime.now();
-    final semesterStart = DateTime(2026, 24, 2); // Adjust this as needed
+    final semesterStart = DateTime(2026, 2, 1); // Fixed date format
     final difference = now.difference(semesterStart).inDays;
     return (difference ~/ 7) + 1;
   }
@@ -19,32 +22,40 @@ class Dashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Mock data - replace with your actual data source
     final today = DateTime.now();
     final academicWeek = getAcademicWeek();
-    double attendance = 80.0;
-    bool lowAttendance = attendance < 75;
-    final pendingAssignments = 4;
 
-    // Mock data for today's sessions
-    final List<Map<String, String>> todaySessions = [
-      {'name': 'W5_pre_reading', 'time': '10:00 AM', 'type': 'Lecture'},
-      {'name': 'Quiz 2', 'time': '11:00 AM', 'type': 'Assessment'},
-      {'name': 'Formative Assessment', 'time': '12:00 PM', 'type': 'Lab'},
-      {'name': 'Advanced Programming', 'time': '2:00 PM', 'type': 'Lecture'},
-    ];
+    // Get data from providers
+    final scheduleProvider = context.watch<ScheduleProvider>();
+    final assignmentProvider = context.watch<AssignmentProvider>();
 
-    // Mock data for upcoming assignments (due within 7 days)
-    final List<Map<String, dynamic>> upcomingAssignments = [
-      {'name': 'Database Design Project', 'dueDate': today.add(Duration(days: 2)), 'subject': 'Database Systems'},
-      {'name': 'Research Paper', 'dueDate': today.add(Duration(days: 4)), 'subject': 'Research Methods'},
-      {'name': 'Mobile App Prototype', 'dueDate': today.add(Duration(days: 6)), 'subject': 'Software Engineering'},
-    ];
+    final todaySchedules = scheduleProvider.getSchedulesForDate(today);
+
+    // Check if there's any attendance data
+    final pastSchedules = scheduleProvider.schedules.where((s) {
+      return s.date.isBefore(today) && s.isPresent != null;
+    }).toList();
+    final hasAttendanceData = pastSchedules.isNotEmpty;
+
+    final attendance = scheduleProvider.getAttendancePercentage();
+    final lowAttendance = attendance < 75;
+
+    // Get pending assignments (incomplete)
+    final pendingAssignments = assignmentProvider.assignments
+        .where((a) => !a.isCompleted)
+        .length;
+
+    // Get upcoming assignments (due within 7 days and not completed)
+    final upcomingAssignments = assignmentProvider.assignments.where((a) {
+      final daysUntilDue = a.dueDate.difference(today).inDays;
+      return !a.isCompleted && daysUntilDue >= 0 && daysUntilDue <= 7;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: Center(
-            child: Text('Dashboard', style: TextStyle(color: Colors.white))),
+          child: Text('Dashboard', style: TextStyle(color: Colors.white)),
+        ),
         backgroundColor: Colors.blue[900],
         actions: [
           IconButton(
@@ -78,7 +89,7 @@ class Dashboard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(width: 25,height: 10),
+                  SizedBox(width: 25, height: 10),
                   Text(
                     'Academic Week $academicWeek',
                     style: TextStyle(
@@ -102,7 +113,23 @@ class Dashboard extends StatelessWidget {
                 ),
               ),
             ),
-            ...todaySessions.map((session) {
+            if (todaySchedules.isEmpty)
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Center(
+                  child: Text(
+                    'No sessions scheduled for today',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+              ),
+            ...todaySchedules.map((schedule) {
               return Container(
                 margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 padding: EdgeInsets.all(12),
@@ -120,7 +147,7 @@ class Dashboard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        session['time']!,
+                        schedule.startTime,
                         style: TextStyle(
                           color: Colors.blue[900],
                           fontWeight: FontWeight.w500,
@@ -133,14 +160,14 @@ class Dashboard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            session['name']!,
+                            schedule.title,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           Text(
-                            session['type']!,
+                            schedule.sessionTypeName,
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14,
@@ -152,68 +179,100 @@ class Dashboard extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
             // Attendance Section with Warning
             Container(
               margin: EdgeInsets.all(16),
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: lowAttendance ? Colors.red[50] : Colors.green[50],
+                color: hasAttendanceData
+                    ? (lowAttendance ? Colors.red[50] : Colors.green[50])
+                    : Colors.grey[50],
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: lowAttendance ? Colors.red[300]! : Colors.green[300]!,
+                  color: hasAttendanceData
+                      ? (lowAttendance ? Colors.red[300]! : Colors.green[300]!)
+                      : Colors.grey[300]!,
                   width: 1,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Attendance',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
+              child: hasAttendanceData
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Attendance',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              '${attendance.toStringAsFixed(1)}%',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: lowAttendance
+                                    ? Colors.red[800]
+                                    : Colors.green[800],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        '${attendance.toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: lowAttendance ? Colors.red[800] : Colors.green[800],
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (lowAttendance)
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.red[100],
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.warning, color: Colors.red[800], size: 16),
-                          SizedBox(width: 4),
-                          Text(
-                            'Below 75%',
-                            style: TextStyle(
-                              color: Colors.red[800],
-                              fontWeight: FontWeight.w500,
+                        if (lowAttendance)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red[100],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning,
+                                  color: Colors.red[800],
+                                  size: 16,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Below 75%',
+                                  style: TextStyle(
+                                    color: Colors.red[800],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.grey[500],
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'No attendance data yet',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
                     ),
-                ],
-              ),
             ),
 
             // Pending Assignments Summary
@@ -268,18 +327,18 @@ class Dashboard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.grey[50],
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Center(
                   child: Text(
                     'No assignments due in the next 7 days',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: Colors.grey[600]),
                   ),
                 ),
               ),
             ...upcomingAssignments.map((assignment) {
-              final daysUntilDue = assignment['dueDate'].difference(today).inDays;
-              final dueDateFormatted = formatDate(assignment['dueDate']);
+              final daysUntilDue = assignment.dueDate.difference(today).inDays;
+              final dueDateFormatted = formatDate(assignment.dueDate);
 
               return Container(
                 margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -302,7 +361,9 @@ class Dashboard extends StatelessWidget {
                       width: 4,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: daysUntilDue <= 2 ? Colors.red[400] : Colors.orange[400],
+                        color: daysUntilDue <= 2
+                            ? Colors.red[400]
+                            : Colors.orange[400],
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -312,7 +373,7 @@ class Dashboard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            assignment['name'],
+                            assignment.title,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -321,10 +382,14 @@ class Dashboard extends StatelessWidget {
                           SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.subject, size: 14, color: Colors.grey[600]),
+                              Icon(
+                                Icons.subject,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
                               SizedBox(width: 4),
                               Text(
-                                assignment['subject'],
+                                assignment.courseName,
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 14,
@@ -347,7 +412,10 @@ class Dashboard extends StatelessWidget {
                         ),
                         SizedBox(height: 4),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: daysUntilDue <= 2
                                 ? Colors.red[100]
@@ -378,7 +446,7 @@ class Dashboard extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
             SizedBox(height: 20),
           ],

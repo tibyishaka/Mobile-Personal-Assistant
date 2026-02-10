@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:personal_assistant/providers/schedule_provider.dart';
+import 'package:intl/intl.dart';
 
 class AttendanceTracking extends StatefulWidget {
   const AttendanceTracking({super.key});
@@ -13,65 +16,72 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
   final Color darkBlue = const Color(0xFF003366);
   final Color white = Colors.white;
 
-  // Sample data for demonstration
-  final int totalSessions = 24;
-  final int attendedSessions = 18;
-
-  // Course data: [courseName, attended, total]
-  final List<Map<String, dynamic>> courses = [
-    {'name': 'Data Structures', 'attended': 6, 'total': 8},
-    {'name': 'Web Development', 'attended': 5, 'total': 6},
-    {'name': 'Database Systems', 'attended': 4, 'total': 6},
-    {'name': 'Mobile Development', 'attended': 3, 'total': 4},
-  ];
-
-  // Attendance history: [date, title, course, isPresent]
-  final List<Map<String, dynamic>> history = [
-    {
-      'date': 'Feb 3, 2026',
-      'title': 'Lecture 8',
-      'course': 'Data Structures',
-      'present': true,
-    },
-    {
-      'date': 'Feb 2, 2026',
-      'title': 'Lab 3',
-      'course': 'Web Development',
-      'present': true,
-    },
-    {
-      'date': 'Feb 1, 2026',
-      'title': 'Lecture 6',
-      'course': 'Database Systems',
-      'present': false,
-    },
-    {
-      'date': 'Jan 31, 2026',
-      'title': 'Lecture 4',
-      'course': 'Mobile Development',
-      'present': true,
-    },
-    {
-      'date': 'Jan 30, 2026',
-      'title': 'Lecture 7',
-      'course': 'Data Structures',
-      'present': false,
-    },
-    {
-      'date': 'Jan 29, 2026',
-      'title': 'Lab 2',
-      'course': 'Web Development',
-      'present': true,
-    },
-  ];
-
   String selectedFilter = 'All Sessions';
   String selectedCourse = 'All Courses';
 
   @override
   Widget build(BuildContext context) {
-    double overallPercentage = (attendedSessions / totalSessions) * 100;
-    bool isGoodAttendance = overallPercentage >= 75;
+    final scheduleProvider = context.watch<ScheduleProvider>();
+    final schedules = scheduleProvider.schedules;
+
+    // Calculate overall attendance
+    final pastSchedules = schedules.where((s) {
+      return s.date.isBefore(DateTime.now()) && s.isPresent != null;
+    }).toList();
+
+    final totalSessions = pastSchedules.length;
+    final attendedSessions = pastSchedules
+        .where((s) => s.isPresent == true)
+        .length;
+    final overallPercentage = totalSessions > 0
+        ? (attendedSessions / totalSessions) * 100
+        : 0.0;
+    final isGoodAttendance = overallPercentage >= 75;
+
+    // Get unique courses and their attendance
+    final courseAttendance = <String, Map<String, int>>{};
+    for (var schedule in pastSchedules) {
+      if (!courseAttendance.containsKey(schedule.title)) {
+        courseAttendance[schedule.title] = {'attended': 0, 'total': 0};
+      }
+      courseAttendance[schedule.title]!['total'] =
+          courseAttendance[schedule.title]!['total']! + 1;
+      if (schedule.isPresent == true) {
+        courseAttendance[schedule.title]!['attended'] =
+            courseAttendance[schedule.title]!['attended']! + 1;
+      }
+    }
+
+    // Build courses list
+    final courses = courseAttendance.entries
+        .map(
+          (entry) => {
+            'name': entry.key,
+            'attended': entry.value['attended']!,
+            'total': entry.value['total']!,
+          },
+        )
+        .toList();
+
+    // Attendance history (sorted by date)
+    final history =
+        pastSchedules
+            .map(
+              (s) => {
+                'date': DateFormat('MMM d, yyyy').format(s.date),
+                'title': s.title,
+                'course': s.sessionTypeName,
+                'present': s.isPresent ?? false,
+              },
+            )
+            .toList()
+          ..sort(
+            (a, b) => DateFormat('MMM d, yyyy')
+                .parse(b['date'] as String)
+                .compareTo(
+                  DateFormat('MMM d, yyyy').parse(a['date'] as String),
+                ),
+          );
 
     return Scaffold(
       appBar: AppBar(
@@ -83,30 +93,47 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          _buildOverallSummary(overallPercentage, isGoodAttendance),
+          _buildOverallSummary(
+            overallPercentage,
+            isGoodAttendance,
+            attendedSessions,
+            totalSessions,
+          ),
 
           const SizedBox(height: 24),
 
-          _buildRiskAlerts(),
+          _buildRiskAlerts(
+            courses,
+            overallPercentage,
+            attendedSessions,
+            totalSessions,
+          ),
 
           const SizedBox(height: 24),
 
-          _buildCourseSection(),
+          _buildCourseSection(courses),
 
           const SizedBox(height: 24),
 
-          _buildFilters(),
+          _buildFilters(courses),
 
           const SizedBox(height: 16),
 
-          _buildHistorySection(),
+          _buildHistorySection(history),
         ],
       ),
     );
   }
 
-  Widget _buildOverallSummary(double percentage, bool isGood) {
-    return Container(
+  Widget _buildOverallSummary(
+    double percentage,
+    bool isGood,
+    int attended,
+    int total,
+  ) {
+    final bool hasData = total > 0;
+
+    return SizedBox(
       width: MediaQuery.of(context).size.width * 0.85,
       child: Card(
         elevation: 4,
@@ -124,43 +151,62 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
-                '${percentage.toStringAsFixed(1)}%',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: isGood ? Colors.green : deepRed,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: isGood ? Colors.green : deepRed,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  isGood ? 'Good Standing' : 'At Risk',
+              if (hasData) ...[
+                Text(
+                  '${percentage.toStringAsFixed(1)}%',
                   style: TextStyle(
-                    color: white,
+                    fontSize: 36,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    color: isGood ? Colors.green : deepRed,
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Text(
-                'You have attended $attendedSessions out of $totalSessions sessions',
-                style: TextStyle(fontSize: 11, color: Colors.grey[700]),
-                textAlign: TextAlign.center,
-              ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isGood ? Colors.green : deepRed,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    isGood ? 'Good Standing' : 'At Risk',
+                    style: TextStyle(
+                      color: white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'You have attended $attended out of $total sessions',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                  textAlign: TextAlign.center,
+                ),
+              ] else ...[
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 48,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'No attendance data yet',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Start adding your schedule to track attendance',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
         ),
@@ -168,12 +214,19 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
     );
   }
 
-  Widget _buildRiskAlerts() {
+  Widget _buildRiskAlerts(
+    List<Map<String, dynamic>> courses,
+    double overallPercentage,
+    int attendedSessions,
+    int totalSessions,
+  ) {
     List<Widget> alerts = [];
 
     for (var course in courses) {
-      double coursePercentage = (course['attended'] / course['total']) * 100;
-      if (coursePercentage < 75) {
+      double coursePercentage = course['total'] > 0
+          ? (course['attended'] / course['total']) * 100
+          : 0;
+      if (coursePercentage < 75 && course['total'] > 0) {
         alerts.add(
           Container(
             margin: const EdgeInsets.only(bottom: 8),
@@ -203,7 +256,7 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
       }
     }
 
-    if (overallPercentage < 75) {
+    if (overallPercentage < 75 && totalSessions > 0) {
       int sessionsNeeded = ((totalSessions * 0.75) - attendedSessions).ceil();
       if (sessionsNeeded > 0) {
         alerts.add(
@@ -256,7 +309,19 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
     );
   }
 
-  Widget _buildCourseSection() {
+  Widget _buildCourseSection(List<Map<String, dynamic>> courses) {
+    if (courses.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        child: Center(
+          child: Text(
+            'No course attendance data available yet',
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -269,13 +334,15 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
           ),
         ),
         const SizedBox(height: 12),
-        ...courses.map((course) => _buildCourseCard(course)).toList(),
+        ...courses.map((course) => _buildCourseCard(course)),
       ],
     );
   }
 
   Widget _buildCourseCard(Map<String, dynamic> course) {
-    double percentage = (course['attended'] / course['total']) * 100;
+    double percentage = course['total'] > 0
+        ? (course['attended'] / course['total']) * 100
+        : 0;
     bool isGood = percentage >= 75;
 
     return Card(
@@ -335,7 +402,7 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(List<Map<String, dynamic>> courses) {
     return Row(
       children: [
         Expanded(
@@ -401,16 +468,16 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
     );
   }
 
-  Widget _buildHistorySection() {
+  Widget _buildHistorySection(List<Map<String, dynamic>> history) {
     // Apply filters
     List<Map<String, dynamic>> filteredHistory = history.where((session) {
       // Filter by presence
       if (selectedFilter == 'Present Only' && !session['present']) return false;
       if (selectedFilter == 'Absent Only' && session['present']) return false;
 
-      // Filter by course
+      // Filter by course - match against title since we're using title as course name
       if (selectedCourse != 'All Courses' &&
-          session['course'] != selectedCourse) {
+          session['title'] != selectedCourse) {
         return false;
       }
 
@@ -435,15 +502,15 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
             child: Padding(
               padding: const EdgeInsets.all(20.0),
               child: Text(
-                'No sessions match your filters',
+                history.isEmpty
+                    ? 'No attendance records yet'
+                    : 'No sessions match your filters',
                 style: TextStyle(color: Colors.grey[600]),
               ),
             ),
           )
         else
-          ...filteredHistory
-              .map((session) => _buildHistoryItem(session))
-              .toList(),
+          ...filteredHistory.map((session) => _buildHistoryItem(session)),
       ],
     );
   }
@@ -503,6 +570,4 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
       ),
     );
   }
-
-  double get overallPercentage => (attendedSessions / totalSessions) * 100;
 }

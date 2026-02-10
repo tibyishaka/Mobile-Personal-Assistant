@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/schedule_provider.dart';
+import '../providers/auth_provider.dart';
 import '../models/schedule.dart';
 import '../utils/constants.dart';
 
@@ -140,6 +141,24 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   void saveSchedule() {
     if (_formKey.currentState!.validate()) {
       final provider = Provider.of<ScheduleProvider>(context, listen: false);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+      // For new schedules, if date is in the past, default isPresent to false (absent)
+      bool? attendanceStatus = widget.schedule?.isPresent;
+      if (widget.schedule == null) {
+        // New schedule: check if date is in the past
+        final now = DateTime.now();
+        final scheduleDateTime = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+          endTime.hour,
+          endTime.minute,
+        );
+        if (scheduleDateTime.isBefore(now)) {
+          attendanceStatus = false; // Mark as absent for past sessions
+        }
+      }
 
       final schedule = Schedule(
         id:
@@ -153,7 +172,8 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
             ? null
             : _locationController.text,
         sessionType: selectedType,
-        isPresent: widget.schedule?.isPresent,
+        isPresent: attendanceStatus,
+        userId: authProvider.currentUserId ?? '',
       );
 
       if (widget.schedule == null) {
@@ -193,7 +213,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
             ),
             SizedBox(height: 16),
             DropdownButtonFormField<SessionType>(
-              value: selectedType,
+              initialValue: selectedType,
               decoration: InputDecoration(
                 labelText: 'Session Type',
                 border: OutlineInputBorder(),

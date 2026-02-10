@@ -289,7 +289,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             onChanged: (value) {
                               provider.toggleAttendance(schedule.id, value);
                             },
-                            activeColor: Colors.green,
+                            activeThumbColor: Colors.green,
                             inactiveThumbColor: AppColors.aluRed,
                           ),
                           Text(

@@ -56,7 +56,7 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    final success = authProvider.signUp(
+    final success = await authProvider.signUp(
       _usernameController.text.trim(),
       _emailController.text.trim(),
       _passwordController.text,

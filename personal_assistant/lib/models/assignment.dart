@@ -4,14 +4,16 @@ import 'dart:convert';
 @immutable
 class Assignment {
   final String id;
+  final String userId;
   final String title;
   final DateTime dueDate;
   final String courseName;
   final String priority;
   final bool isCompleted;
 
-  Assignment({
+  const Assignment({
     required this.id,
+    required this.userId,
     required this.title,
     required this.dueDate,
     required this.courseName,
@@ -21,6 +23,7 @@ class Assignment {
 
   Assignment copyWith({
     String? id,
+    String? userId,
     String? title,
     DateTime? dueDate,
     String? courseName,
@@ -29,6 +32,7 @@ class Assignment {
   }) {
     return Assignment(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       title: title ?? this.title,
       dueDate: dueDate ?? this.dueDate,
       courseName: courseName ?? this.courseName,
@@ -41,6 +45,7 @@ class Assignment {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'userId': userId,
       'title': title,
       'dueDate': dueDate.toIso8601String(),
       'courseName': courseName,
@@ -58,6 +63,7 @@ class Assignment {
   factory Assignment.fromJson(Map<String, dynamic> json) {
     return Assignment(
       id: json['id'] as String,
+      userId: json['userId'] as String? ?? '',
       title: json['title'] as String,
       dueDate: DateTime.parse(json['dueDate'] as String),
       courseName: json['courseName'] as String,
