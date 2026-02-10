@@ -255,7 +255,11 @@ class _AssignmentManagementScreenState
                       const SizedBox(height: 16),
                       // Course Name Dropdown
                       DropdownButtonFormField<String>(
-                        value: _selectedCourse,
+                        value:
+                            (_selectedCourse != null &&
+                                classNames.contains(_selectedCourse))
+                            ? _selectedCourse
+                            : null,
                         decoration: InputDecoration(
                           labelText: 'Course Name *',
                           border: OutlineInputBorder(
@@ -265,15 +269,18 @@ class _AssignmentManagementScreenState
                         ),
                         hint: Text(
                           classNames.isEmpty
-                              ? 'No classes available - add classes in Schedule first'
+                              ? 'No classes available'
                               : 'Select a course',
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        items: classNames.map((className) {
-                          return DropdownMenuItem<String>(
-                            value: className,
-                            child: Text(className),
-                          );
-                        }).toList(),
+                        items: classNames.isEmpty
+                            ? []
+                            : classNames.map((className) {
+                                return DropdownMenuItem<String>(
+                                  value: className,
+                                  child: Text(className),
+                                );
+                              }).toList(),
                         onChanged: classNames.isEmpty
                             ? null
                             : (value) {
@@ -285,15 +292,42 @@ class _AssignmentManagementScreenState
                                 });
                               },
                         validator: (value) {
+                          // Don't show validation error if no classes are available
+                          if (classNames.isEmpty) {
+                            return null;
+                          }
                           if (value == null || value.isEmpty) {
                             return 'Please select a course';
                           }
                           return null;
                         },
                       ),
+                      if (classNames.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, left: 12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.orange[700],
+                              ),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Add classes in Schedule first',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.orange[700],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: _selectedPriority,
+                        initialValue: _selectedPriority,
                         decoration: InputDecoration(
                           labelText: 'Priority Level',
                           border: OutlineInputBorder(

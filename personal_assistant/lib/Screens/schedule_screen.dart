@@ -148,9 +148,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             MaterialPageRoute(builder: (context) => AddScheduleScreen()),
           );
         },
-        child: Icon(Icons.add),
           backgroundColor: Colors.blue[900],
          foregroundColor: Colors.white,
+        child: Icon(Icons.add),
       ),
     );
   }
