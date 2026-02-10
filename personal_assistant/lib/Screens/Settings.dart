@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/schedule_provider.dart';
+import '../providers/assignment_provider.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -17,7 +19,7 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings', style: TextStyle(color: Colors.white)),
-        backgroundColor:  Colors.blue[900],
+        backgroundColor: Colors.blue[900],
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
@@ -182,17 +184,15 @@ class _SettingsState extends State<Settings> {
           ),
         ),
         SizedBox(height: 4),
-        ...teamMembers
-            .map(
-              (member) => Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Text(
-                  '• $member',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ),
-            )
-            ,
+        ...teamMembers.map(
+          (member) => Padding(
+            padding: EdgeInsets.only(bottom: 4),
+            child: Text(
+              '• $member',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -204,7 +204,7 @@ class _SettingsState extends State<Settings> {
         return AlertDialog(
           title: Text('Clear All Data'),
           content: Text(
-            'Are you sure you want to clear all data? This action cannot be undone.',
+            'Are you sure you want to clear all your data? This will delete all your schedules and assignments. This action cannot be undone.',
           ),
           actions: [
             TextButton(
@@ -214,12 +214,20 @@ class _SettingsState extends State<Settings> {
               child: Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                // Implement clear data functionality
+              onPressed: () async {
+                // Clear current user's data
+                final scheduleProvider = context.read<ScheduleProvider>();
+                final assignmentProvider = context.read<AssignmentProvider>();
+
+                await Future.wait([
+                  scheduleProvider.clearCurrentUserData(),
+                  assignmentProvider.clearCurrentUserData(),
+                ]);
+
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('All data cleared')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Your data has been cleared')),
+                );
               },
               child: Text('Clear', style: TextStyle(color: Colors.red)),
             ),
