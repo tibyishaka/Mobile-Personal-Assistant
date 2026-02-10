@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:personal_assistant/models/assignment.dart';
 
 class AssignmentProvider extends ChangeNotifier {
-  List<Assignment> _assignments = [];
+  final List<Assignment> _assignments = [];
 
   List<Assignment> get assignments => List.unmodifiable(_assignments);
 

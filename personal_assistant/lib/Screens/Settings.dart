@@ -45,7 +45,7 @@ class _SettingsState extends State<Settings> {
                         _notificationsEnabled = value;
                       });
                     },
-                    activeColor: const Color.fromARGB(255, 5, 48, 83),
+                    activeThumbColor: const Color.fromARGB(255, 5, 48, 83),
                   ),
                 ],
               ),
@@ -189,7 +189,7 @@ class _SettingsState extends State<Settings> {
                 ),
               ),
             )
-            .toList(),
+            ,
       ],
     );
   }

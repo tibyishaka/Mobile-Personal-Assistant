@@ -105,7 +105,7 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
   }
 
   Widget _buildOverallSummary(double percentage, bool isGood) {
-    return Container(
+    return SizedBox(
       width: MediaQuery.of(context).size.width * 0.85,
       child: Card(
         elevation: 4,
@@ -268,7 +268,7 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
           ),
         ),
         const SizedBox(height: 12),
-        ...courses.map((course) => _buildCourseCard(course)).toList(),
+        ...courses.map((course) => _buildCourseCard(course)),
       ],
     );
   }
@@ -442,7 +442,7 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
         else
           ...filteredHistory
               .map((session) => _buildHistoryItem(session))
-              .toList(),
+              ,
       ],
     );
   }

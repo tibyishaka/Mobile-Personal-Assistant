@@ -152,7 +152,7 @@ class Dashboard extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
             // Attendance Section with Warning
             Container(
@@ -378,7 +378,7 @@ class Dashboard extends StatelessWidget {
                   ],
                 ),
               );
-            }).toList(),
+            }),
 
             SizedBox(height: 20),
           ],

@@ -10,7 +10,7 @@ class Assignment {
   final String priority;
   final bool isCompleted;
 
-  Assignment({
+  const Assignment({
     required this.id,
     required this.title,
     required this.dueDate,

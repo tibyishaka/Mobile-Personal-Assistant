@@ -205,8 +205,7 @@ class _AssignmentManagementScreenState
               onPrimary: Colors.white,
               surface: Colors.white,
               onSurface: Colors.black,
-            ),
-            dialogBackgroundColor: Colors.white,
+            ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
           ),
           child: child!,
         );
@@ -292,7 +291,7 @@ class _AssignmentManagementScreenState
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedPriority,
+                    initialValue: _selectedPriority,
                     decoration: InputDecoration(
                       labelText: 'Priority Level',
                       border: OutlineInputBorder(

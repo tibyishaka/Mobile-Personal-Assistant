@@ -193,7 +193,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
             ),
             SizedBox(height: 16),
             DropdownButtonFormField<SessionType>(
-              value: selectedType,
+              initialValue: selectedType,
               decoration: InputDecoration(
                 labelText: 'Session Type',
                 border: OutlineInputBorder(),
