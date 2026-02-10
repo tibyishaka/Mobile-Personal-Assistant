@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -14,9 +16,10 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color.fromARGB(255, 5, 48, 83),
-        iconTheme: IconThemeData(color: Colors.white),
+        title: const Text('Settings', style: TextStyle(color: Colors.white)),
+        backgroundColor:  Colors.blue[900],
+        iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true,
       ),
       body: ListView(
         padding: EdgeInsets.all(16),
@@ -242,11 +245,12 @@ class _SettingsState extends State<Settings> {
             ),
             TextButton(
               onPressed: () {
-                // Implement logout functionality
+                // Perform logout with AuthProvider
+                context.read<AuthProvider>().logout();
+                // Pop the dialog first
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Logged out successfully')),
-                );
+                // Pop back to main screen so AuthWrapper can redirect to login
+                Navigator.of(context).pop();
               },
               child: Text('Logout', style: TextStyle(color: Colors.red)),
             ),

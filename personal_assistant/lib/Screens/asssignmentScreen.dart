@@ -316,7 +316,7 @@ class _AssignmentManagementScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('Assignment Management'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
         centerTitle: true,
         elevation: 3,
@@ -326,7 +326,7 @@ class _AssignmentManagementScreenState
           _resetForm();
           _showAssignmentDialog();
         },
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),

@@ -53,6 +53,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       appBar: AppBar(
         title: Text('Schedule', style: TextStyle(color: Colors.white),),
         backgroundColor: Colors.blue[900],
+        centerTitle: true,
         ),
       body: Column(
         children: [
@@ -148,6 +149,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           );
         },
         child: Icon(Icons.add),
+          backgroundColor: Colors.blue[900],
+         foregroundColor: Colors.white,
       ),
     );
   }

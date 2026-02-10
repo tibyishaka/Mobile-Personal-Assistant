@@ -78,6 +78,7 @@ class _AttendanceTrackingState extends State<AttendanceTracking> {
         title: const Text('Attendance Tracking'),
         backgroundColor: darkBlue,
         foregroundColor: white,
+        centerTitle: true,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
