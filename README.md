@@ -30,10 +30,12 @@ Mobile-Personal-Assistant/
 │   │   ├── settings.dart
 │   │   └── signup_screen.dart
 │   │
-│   └── utils/
-│       ├── constants.dart
-│       ├── main.dart
-│       └── navigation_menu.dart
+│   ├──services/
+│   │   ├── storage_service.dart
+│   └── utils/  
+│   │     ├── constants.dart   
+│   ├── main.dart
+│   └── navigation_menu.dart
 │
 ├── linux/
 ├── macos/
@@ -66,7 +68,8 @@ The app follows a provider-based state management architecture with a clear sepa
 
 - Screens: UI components and pages
 
-- Utils: Constants and main application setup
+- Utils: Constants 
+- main application setup
 
 ## 📁 File Descriptions
 ### Models
